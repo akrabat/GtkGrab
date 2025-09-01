@@ -1,4 +1,6 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3
+
+# !/usr/bin/env python3
 
 # This file is part of GtkGrab.
 #
@@ -50,9 +52,9 @@ if os.path.exists(path) == True:
 # Perform capture
 returnval = os.system(command.replace("%s", path))
 
-if returnval != 0 or os.path.exists(path) == False:
+if (returnval != 0 and returnval != 256) or os.path.exists(path) == False:
     # no cap file created
-    # os.system(notifyCommand.replace('%s', "Cancelled"))
+    # os.system(notifyCommand.replace('%s', f"{returnval} {path} Cancelled!!!"))
     sys.exit(1)
 
 
@@ -74,6 +76,7 @@ if postURL == 's3':
     os.system(uploadCommand)
     url = "http://"+bucket+".s3.amazonaws.com/caps/"+filename+".png"
 else:
+    os.system(notifyCommand.replace('%s', f"Uploading"))
     # encode the screenshot with base64
     data = base64.b64encode(open(path, 'rb').read())
     # hash the data with the user's secret token and send that as header
@@ -82,6 +85,7 @@ else:
     hash.update(token.encode('UTF-8'))
     headers = {'X-Username': user, 'X-Signature': hash.hexdigest(), 'Content-Type': 'text/xml'}
     # upload the url and give the screenshot url to the user
+    print(postURL)
     url = urllib2.urlopen(urllib2.Request(postURL, data, headers)).read()
     url = url.decode(encoding='utf-8', errors='strict')
 
@@ -92,3 +96,5 @@ if os.path.exists(path) == True:
 pyperclip.copy(url)
 
 os.system(notifyCommand.replace('%s', 'Copied URL to clipboard: ' + url))
+
+os.system(f"open {url}")
